@@ -16,6 +16,7 @@
             box-sizing: inherit;
         }
         body {
+            font-size: 0.8em;
             font-family: Arial, sans-serif;
             margin: 0;
             display: flex;
@@ -31,7 +32,6 @@
         }
         .top-panel button {
             padding: 8px 16px;
-            font-size: 1em;
             color: white;
             background-color: #0056b3;
             border: none;
@@ -93,7 +93,6 @@
             margin-bottom: 15px;
         }
         .category {
-            font-size: 0.9em;
             color: #777;
         }
         .icons {
@@ -102,12 +101,10 @@
             gap: 5px;
         }
         .front h2, .back h2 {
-            font-size: 1em;
             color: #333;
             margin: 0;
         }
         .back p {
-            font-size: 0.9em;
             color: #555;
             margin: 10px 0;
         }
@@ -125,7 +122,6 @@
         button {
             margin-top: 15px;
             padding: 10px 20px;
-            font-size: 0.9em;
             color: white;
             background-color: #007bff;
             border: none;
@@ -136,10 +132,9 @@
             background-color: #0056b3;
         }
         .sidebar {
-            width: 400px;
+            width: 300px;
             background-color: #fff;
             border-right: 1px solid #ddd;
-            padding: 20px;
             overflow-y: auto;
             position: absolute;
         }
@@ -151,33 +146,36 @@
             border-bottom: 1px solid #ddd;
         }
         .sidebar .ui-tabs-tab {
-            font-size: 0.9em;
+        }
+        .sidebar .ui-tabs-panel {
+            padding: 0;
         }
         .card-list, .favorites-list, .hidden-list {
             list-style: none;
             padding: 0;
-            margin: 10px 0;
+            margin: 5px 0;
         }
         .card-list li, .favorites-list li, .hidden-list li {
-            padding: 10px;
+            padding: 5px;
             border-bottom: 1px solid #eee;
             cursor: pointer;
-            font-size: 0.9em;
             color: #333;
         }
         .card-list li:hover, .favorites-list li:hover, .hidden-list li:hover {
             background-color: #f0f0f0;
         }
         .card-list .category, .favorites-list .category, .hidden-list .category {
-            font-size: 0.9em;
             color: #777;
             display: block;
         }
         #references-overlay {
             display: none;
-            max-height: 271px;
+            max-height: auto;
             overflow-y: auto;    
-            font-size: 0.9em;
+
+        }
+         #references-overlay .references-list li {
+            padding: 5px;
         }
         .references-list, .reference-detail {
             display: none;
@@ -204,7 +202,6 @@
         .references-list li p {
             margin: 5px 0 0;
             color: #555;
-            font-size: 0.9em;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
@@ -214,12 +211,10 @@
         .reference-detail strong {
             display: block;
             color: #333;
-            font-size: 0.9em;
             margin-bottom: 10px;
         }
         .reference-detail p {
             color: #555;
-            font-size: 0.9em;
             margin: 0;
         }
         .favorited {
@@ -229,8 +224,8 @@
 </head>
 <body>
     <div class="top-panel">
-        <button id="toggle-sidebar">Sidebar ein-/ausblenden</button>
-        <button id="show-all-references">Alle Referenzen</button>
+        <button id="toggle-sidebar">Karte auswählen</button>
+        <button id="show-all-references">Referenzen</button>
     </div>
     <div class="content-container">
         <div class="flashcard-container">
@@ -287,7 +282,6 @@
             <ul id="references-list-items"></ul>
         </div>
         <div class="reference-detail" id="reference-detail">
-            <button id="back-to-list">Zurück zur Liste</button>
             <div id="reference-detail-content"></div>
         </div>
     </div>
@@ -1796,8 +1790,22 @@
             $("#references-overlay").dialog({
                 autoOpen: false,
                 modal: true,
-                width: 600,
+                width: "100%",
+                height: "auto",
                 buttons: {
+                    "Zur Übersicht": function() {
+                        $("#references-list-items").empty();
+                        references.forEach(ref => {
+                        $("#references-list-items").append(`
+                            <li data-ref-id="${ref.referenceId}">
+                                <strong>${ref.name}</strong>
+                                <p>${ref.description}</p>
+                            </li>
+                            `);
+                        });
+                        $("#references-list").addClass("active");
+                        $("#reference-detail").removeClass("active");
+                    },
                     "Schließen": function() {
                         $(this).dialog("close");
                         $("#references-list").addClass("active");
@@ -1869,6 +1877,7 @@
                 const index = $(this).data("index");
                 currentCardIndex = index;
                 $("#flashcard").removeClass("flipped");
+                $(".sidebar").addClass("hidden");
                 loadCard(index);
             });
 
@@ -1877,6 +1886,7 @@
                 const index = $(this).data("index");
                 currentCardIndex = index;
                 $("#flashcard").removeClass("flipped");
+                $(".sidebar").addClass("hidden");
                 loadCard(index);
             });
 
@@ -1885,6 +1895,7 @@
                 const index = $(this).data("index");
                 currentCardIndex = index;
                 $("#flashcard").removeClass("flipped");
+                $(".sidebar").addClass("hidden");
                 loadCard(index);
             });
 
@@ -1925,21 +1936,6 @@
             $("#references-list-items").on("click", "li", function() {
                 const refId = $(this).data("ref-id");
                 showReferenceDetail(refId);
-            });
-
-            // Event-Handler für "Zurück zur Liste"
-            $("#back-to-list").click(function() {
-                $("#references-list-items").empty();
-                references.forEach(ref => {
-                    $("#references-list-items").append(`
-                        <li data-ref-id="${ref.referenceId}">
-                            <strong>${ref.name}</strong>
-                            <p>${ref.description}</p>
-                        </li>
-                    `);
-                });
-                $("#references-list").addClass("active");
-                $("#reference-detail").removeClass("active");
             });
 
             // Event-Handler für Sidebar ein-/ausblenden
