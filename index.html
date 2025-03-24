@@ -217,6 +217,33 @@
             color: #555;
             margin: 0;
         }
+        .problems-list, .problem-detail {
+            display: none;
+        }
+        .problems-list.active, .problem-detail.active {
+            display: block;
+        }
+        #problems-list-items {
+            list-style: none; 
+            padding: 0;       
+        }
+        #problems-list-items li {
+            padding: 10px;              
+            border-bottom: 1px solid #eee; 
+            cursor: pointer;            
+            color: #007bff;            
+            text-decoration: underline;
+        }
+        #problems-list-items li:hover {
+            background-color: #f0f0f0;
+        }
+        #problems-list-items li strong {
+            display: block;
+            color: #333;
+        }
+        #problem-detail-content p {
+            margin-bottom: 15px;
+        }
         .favorited {
             background-color: #007bff !important;
         }
@@ -225,6 +252,7 @@
 <body>
     <div class="top-panel">
         <button id="toggle-sidebar">Karte auswählen</button>
+        <button id="show-all-problems">Handlungsemfpehlungen</button>
         <button id="show-all-references">Referenzen</button>
     </div>
     <div class="content-container">
@@ -283,6 +311,15 @@
         </div>
         <div class="reference-detail" id="reference-detail">
             <div id="reference-detail-content"></div>
+        </div>
+    </div>
+
+    <div id="problems-overlay" title="Probleme">
+        <div class="problems-list active" id="problems-list">
+            <ul id="problems-list-items"></ul>
+        </div>
+        <div class="problem-detail" id="problem-detail">
+            <div id="problem-detail-content"></div>
         </div>
     </div>
 
@@ -1763,10 +1800,213 @@ const flashcards = [
     }
     ];
 
+const problems = [
+  {
+    "problem": "Ängstlichkeit, Schüchternheit",
+    "description": "Das Kind traut sich nicht, mit anderen zu sprechen oder an Gruppenspielen teilzunehmen. Es vermeidet Blickkontakt und bleibt oft alleine.",
+    "recommendations": [
+      "Vertrauensvolle Einzelgespräche",
+      "Rollenspiele",
+      "Soziale Interaktion gezielt fördern"
+    ],
+    "didactic_methods": [
+      "Rollenspiel",
+      "Partnerarbeit",
+      "Geschichten erzählen"
+    ],
+    "pedagogical_theories": [
+      "Bindungstheorie (Bowlby)",
+      "Selbstbestimmungstheorie (Deci & Ryan)"
+    ],
+    "references": ["ref8", "ref51"]
+  },
+  {
+    "problem": "Geringes Selbstbewusstsein",
+    "description": "Das Kind traut sich nicht, vor anderen zu sprechen oder eigene Ideen einzubringen. Es gibt schnell auf, wenn es auf Herausforderungen stößt.",
+    "recommendations": [
+      "Erfolgserlebnisse schaffen",
+      "Positive Verstärkung",
+      "Verantwortungsvolle Aufgaben geben"
+    ],
+    "didactic_methods": [
+      "Portfolio-Arbeit",
+      "Rituale zur Wertschätzung"
+    ],
+    "pedagogical_theories": [
+      "Selbstwirksamkeitstheorie (Bandura)",
+      "Montessori-Pädagogik"
+    ],
+    "references": ["ref2", "ref16"]
+  },
+  {
+    "problem": "Hyperaktivität (ADHS/ADS)",
+    "description": "Das Kind kann nicht lange still sitzen, unterbricht oft Gespräche und wechselt ständig zwischen Aktivitäten.",
+    "recommendations": [
+      "Klare Strukturen und Rituale schaffen",
+      "Bewegungspausen einbauen",
+      "Ablenkungen reduzieren"
+    ],
+    "didactic_methods": [
+      "Bewegtes Lernen",
+      "Konzentrationsspiele"
+    ],
+    "pedagogical_theories": [
+      "Kognitivismus (Piaget)",
+      "Verhaltenstherapeutischer Ansatz (Skinner)"
+    ],
+    "references": ["ref6", "ref74"]
+  },
+  {
+    "problem": "Aggressives Verhalten",
+    "description": "Das Kind schubst, schlägt oder schreit andere Kinder an, nimmt keine Rücksicht auf Regeln oder Grenzen.",
+    "recommendations": [
+      "Gewaltfreie Kommunikation fördern",
+      "Konfliktlösungstrainings",
+      "Gefühle verbalisieren lassen"
+    ],
+    "didactic_methods": [
+      "Soziales Rollenspiel",
+      "Mediation durch Erzieher"
+    ],
+    "pedagogical_theories": [
+      "Sozial-kognitive Lerntheorie (Bandura)",
+      "Anti-Aggressivitäts-Training (AAT)"
+    ],
+    "references": ["ref15", "ref20"]
+  },
+  {
+    "problem": "Trotziges Verhalten",
+    "description": "Das Kind reagiert mit Wut oder Trotz auf Anweisungen, weigert sich, Regeln zu befolgen, und provoziert Erwachsene bewusst.",
+    "recommendations": [
+      "Klare Regeln und Konsequenzen",
+      "Wahlmöglichkeiten geben",
+      "Positives Verhalten verstärken"
+    ],
+    "didactic_methods": [
+      "Verstärkersysteme",
+      "Symbolische Belohnungen"
+    ],
+    "pedagogical_theories": [
+      "Verhaltenstheorie (Skinner)",
+      "Demokratische Erziehung (Dewey)"
+    ],
+    "references": ["ref17", "ref30"]
+  },
+  {
+    "problem": "Starker Rückzug",
+    "description": "Das Kind beteiligt sich kaum an Gruppenaktivitäten, spielt oft alleine und wirkt traurig oder distanziert.",
+    "recommendations": [
+      "Kleingruppenaktivitäten anbieten",
+      "Künstlerische Ausdrucksformen nutzen (Malen, Musik, Theater)"
+    ],
+    "didactic_methods": [
+      "Kreativpädagogik",
+      "Kunst- und Musiktherapie"
+    ],
+    "pedagogical_theories": [
+      "Waldorfpädagogik (Steiner)",
+      "Ganzheitliches Lernen"
+    ],
+    "references": ["ref61", "ref32"]
+  },
+  {
+    "problem": "Soziale Unsicherheit",
+    "description": "Das Kind hat Schwierigkeiten, Freundschaften zu schließen, vermeidet Gruppensituationen und spricht kaum mit anderen Kindern.",
+    "recommendations": [
+      "Peer-Gruppen stärken",
+      "Patensysteme einführen",
+      "Gemeinsame Projekte fördern"
+    ],
+    "didactic_methods": [
+      "Kooperatives Lernen",
+      "Gruppenarbeit"
+    ],
+    "pedagogical_theories": [
+      "Ko-Konstruktivismus (Vygotsky)",
+      "Scaffolding-Ansatz"
+    ],
+    "references": ["ref19", "ref26"]
+  },
+  {
+    "problem": "Mobbing (Opfer)",
+    "description": "Das Kind wird gehänselt oder ausgeschlossen, ist oft traurig oder ängstlich und möchte ungern in die Kita/Schule gehen.",
+    "recommendations": [
+      "Selbstbewusstsein stärken",
+      "Soziales Kompetenztraining",
+      "Unterstützung durch Peer-Gruppen"
+    ],
+    "didactic_methods": [
+      "Klassenrat",
+      "Empathie-Übungen"
+    ],
+    "pedagogical_theories": [
+      "Systemische Pädagogik",
+      "Gewaltfreie Kommunikation (Rosenberg)"
+    ],
+    "references": ["ref19", "ref20"]
+  },
+  {
+    "problem": "Mobbing (Täter)",
+    "description": "Das Kind macht sich über andere lustig, schubst oder bedroht sie und zeigt wenig Mitgefühl für die Gefühle anderer.",
+    "recommendations": [
+      "Ursachen für aggressives Verhalten analysieren",
+      "Empathie-Training",
+      "Grenzen und Konsequenzen aufzeigen"
+    ],
+    "didactic_methods": [
+      "Reflexionsgespräche",
+      "Perspektivwechsel-Übungen"
+    ],
+    "pedagogical_theories": [
+      "Sozial-kognitive Lerntheorie (Bandura)",
+      "Anti-Mobbing-Programme"
+    ],
+    "references": ["ref15", "ref26"]
+  },
+  {
+    "problem": "Sprachentwicklungsverzögerung",
+    "description": "Das Kind spricht weniger als Gleichaltrige, hat Schwierigkeiten mit der Aussprache oder bildet nur kurze Sätze.",
+    "recommendations": [
+      "Sprachförderprogramme nutzen",
+      "Spielerische Sprachanreize setzen",
+      "Alltagsnahe Kommunikation fördern"
+    ],
+    "didactic_methods": [
+      "Bilderbücher",
+      "Dialogisches Lesen"
+    ],
+    "pedagogical_theories": [
+      "Spracherwerbstheorie (Chomsky, Vygotsky)"
+    ],
+    "references": ["ref35", "ref9"]
+  },
+  {
+    "problem": "Traumatische Erlebnisse",
+    "description": "Das Kind zeigt plötzlich starke Ängste, Rückzug oder aggressives Verhalten und reagiert empfindlich auf bestimmte Situationen.",
+    "recommendations": [
+      "Vertrauensvolle Bezugsperson bieten",
+      "Psychologische Hilfe einbeziehen",
+      "Stabile Routinen schaffen"
+    ],
+    "didactic_methods": [
+      "Geschichten erzählen",
+      "Mal- und Musiktherapie"
+    ],
+    "pedagogical_theories": [
+      "Resilienzforschung (Masten, Werner)",
+      "Traumapädagogik"
+    ],
+    "references": ["ref51", "ref60"]
+  }
+]
+;
+
+
         let currentCardIndex = -1;
         let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
         let hiddenCards = JSON.parse(localStorage.getItem("hiddenCards")) || [];
-
+        let openedFromProblems = false;
+        
         // Hilfsfunktionen zum Abrufen von Namen
         function getCategoryName(categoryId) {
             const category = categories.find(cat => cat.categoryId === categoryId);
@@ -1790,22 +2030,51 @@ const flashcards = [
                 height: "auto",
                 buttons: {
                     "Zur Übersicht": function() {
-                        $("#references-list-items").empty();
-                        references.forEach(ref => {
-                        $("#references-list-items").append(`
-                            <li data-ref-id="${ref.referenceId}">
-                                <strong>${ref.name}</strong>
-                                <p>${ref.description}</p>
-                            </li>
-                            `);
-                        });
-                        $("#references-list").addClass("active");
-                        $("#reference-detail").removeClass("active");
+                        if (openedFromProblems) {
+                            // Zur Probleme-Übersicht zurückkehren
+                            $("#references-overlay").dialog("close");
+                            $("#problems-overlay").dialog("open");
+                            $("#problems-list").addClass("active"); // Probleme-Übersicht anzeigen
+                            $("#problem-detail").removeClass("active"); // Detailansicht ausblenden
+                            openedFromProblems = false; // Ursprung zurücksetzen
+                        } else {
+                            // Zur Referenzen-Übersicht zurückkehren
+                            $("#references-list-items").empty();
+                            references.forEach(ref => {
+                                $("#references-list-items").append(`
+                                    <li data-ref-id="${ref.referenceId}">
+                                        <strong>${ref.name}</strong>
+                                        <p>${ref.description}</p>
+                                    </li>
+                                `);
+                            });
+                            $("#references-list").addClass("active");
+                            $("#reference-detail").removeClass("active");
+                        }
                     },
                     "Schließen": function() {
                         $(this).dialog("close");
                         $("#references-list").addClass("active");
                         $("#reference-detail").removeClass("active");
+                        openedFromProblems = false; // Ursprung zurücksetzen
+                    }
+                }
+            });
+
+            $("#problems-overlay").dialog({
+                autoOpen: false,
+                modal: true,
+                width: "auto",
+                height: "auto",
+                buttons: {
+                    "Zur Übersicht": function() {
+                        $("#problems-list").addClass("active");
+                        $("#problem-detail").removeClass("active");
+                    },
+                    "Schließen": function() {
+                        $(this).dialog("close");
+                        $("#problems-list").addClass("active");
+                        $("#problem-detail").removeClass("active");
                     }
                 }
             });
@@ -1925,6 +2194,7 @@ const flashcards = [
                 });
                 $("#references-list").addClass("active");
                 $("#reference-detail").removeClass("active");
+                openedFromProblems = false; // Ursprung setzen
                 $("#references-overlay").dialog("open");
             });
 
@@ -1932,6 +2202,34 @@ const flashcards = [
             $("#references-list-items").on("click", "li", function() {
                 const refId = $(this).data("ref-id");
                 showReferenceDetail(refId);
+            });
+
+            $("#show-all-problems").click(function() {
+                $("#problems-list-items").empty();
+                problems.forEach(problem => {
+                    $("#problems-list-items").append(`
+                        <li data-problem-name="${problem.problem}">
+                            <strong>${problem.problem}</strong>
+                        </li>
+                    `);
+                });
+                $("#problems-list").addClass("active");
+                $("#problem-detail").removeClass("active");
+                $("#problems-overlay").dialog("open");
+            });
+
+            $("#problems-list-items").on("click", "li", function() {
+                const problemName = $(this).data("problem-name");
+                showProblemDetail(problemName);
+            });
+
+            $("#problem-detail-content").on("click", "a", function(e) {
+                e.preventDefault();
+                const refId = $(this).data("ref-id"); // ID der Referenz
+                $("#problems-overlay").dialog("close"); // Probleme-Dialog schließen
+                showReferenceDetail(refId); // Funktion zum Anzeigen der Referenz-Details
+                openedFromProblems = true; // Ursprung markieren
+                $("#references-overlay").dialog("open"); // Referenzen-Dialog öffnen
             });
 
             // Event-Handler für Sidebar ein-/ausblenden
@@ -2024,6 +2322,49 @@ const flashcards = [
                 icon: isHidden ? "ui-icon-eye-off" : "ui-icon-eye",
                 showLabel: false
             }).removeClass("favorited").addClass(isHidden ? "favorited" : "");
+        }
+
+        function showProblemDetail(problemName) {
+            const problem = problems.find(p => p.problem === problemName);
+            if (problem) {
+                let content = `<strong>${problem.problem}</strong><br>`;
+                
+                // Empfehlungen als Liste mit Bullet Points
+                content += `<p><strong>Empfehlungen:</strong></p><ul>`;
+                problem.recommendations.forEach(rec => {
+                    content += `<li>${rec}</li>`;
+                });
+                content += `</ul>`;
+                
+                // Didaktische Methoden als Liste mit Bullet Points
+                content += `<p><strong>Didaktische Methoden:</strong></p><ul>`;
+                problem.didactic_methods.forEach(method => {
+                    content += `<li>${method}</li>`;
+                });
+                content += `</ul>`;
+                
+                // Pädagogische Theorien als Liste mit Bullet Points
+                content += `<p><strong>Pädagogische Theorien:</strong></p><ul>`;
+                problem.pedagogical_theories.forEach(theory => {
+                    content += `<li>${theory}</li>`;
+                });
+                content += `</ul>`;
+                
+                // Referenzen als Liste mit Bullet Points und anklickbaren Links
+                content += `<p><strong>Referenzen:</strong></p><ul>`;
+                problem.references.forEach(refId => {
+                    const ref = getReference(refId);
+                    content += `<li><a href="#" data-ref-id="${refId}">${ref.name}</a></li>`;
+                });
+                content += `</ul>`;
+
+                // Beschreibung
+                content += `<p><strong>Beschreibung:</strong> ${problem.description}</p>`;
+                
+                $("#problem-detail-content").html(content);
+                $("#problems-list").removeClass("active");
+                $("#problem-detail").addClass("active");
+            }
         }
     </script>
 </body>
